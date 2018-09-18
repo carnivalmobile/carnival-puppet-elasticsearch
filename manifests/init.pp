@@ -436,8 +436,8 @@ class elasticsearch (
         stage { $repo_stage:  before => Stage['main'] }
       }
 
-      include elastic_stack::repo
-      Class<|title == 'elastic_stack::repo'|>{
+      # Don't use virtual resources with classes?
+      class {'elastic_stack::repo':
         stage => $repo_stage,
       }
     }
