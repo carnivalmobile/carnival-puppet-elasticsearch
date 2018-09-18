@@ -3,13 +3,15 @@ require 'puppet/parameter/boolean'
 Puppet::Type.newtype(:elasticsearch_keystore) do
   desc 'Manages an Elasticsearch keystore settings file.'
 
-  ensurable do
-    defaultvalues
-    defaultto :present
-  end
+  ensurable
 
   newparam(:instance, :namevar => true) do
     desc 'Elasticsearch instance this keystore belongs to.'
+  end
+
+  newparam(:configdir) do
+    desc 'Path to the elasticsearch configuration directory (ES_PATH_CONF).'
+    defaultto '/etc/elasticsearch'
   end
 
   newparam(:purge, :boolean => true, :parent => Puppet::Parameter::Boolean) do
@@ -45,14 +47,18 @@ Puppet::Type.newtype(:elasticsearch_keystore) do
 
       removed_settings = currentvalue - newvalue
       unless removed_settings.empty?
-        if resource[:purge]
-          ret << "removed: #{removed_settings.join(', ')}"
-        else
-          ret << "would have removed: #{removed_settings.join(', ')}, but purging is disabled"
-        end
+        ret << if resource[:purge]
+                 "removed: #{removed_settings.join(', ')}"
+               else
+                 "would have removed: #{removed_settings.join(', ')}, but purging is disabled"
+               end
       end
 
       ret
     end
+  end
+
+  autorequire(:augeas) do
+    "defaults_#{self[:name]}"
   end
 end
